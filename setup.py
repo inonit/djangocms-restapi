@@ -18,7 +18,7 @@ setup(
     download_url="https://github.com/inonit/djangocms-restapi.git",
     license="MIT License",
     packages=[
-        "cms_restapi",
+        "djangocms_restapi",
     ],
     include_package_data=True,
     install_requires=[

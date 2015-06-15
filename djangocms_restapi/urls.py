@@ -7,5 +7,5 @@ from django.conf.urls import include, patterns, url
 
 urlpatterns = patterns(
     "",
-    url(r"^menu/", include("cms_restapi.menu.urls"))
+    url(r"^menu/", include("djangocms_restapi.menu.urls"))
 )

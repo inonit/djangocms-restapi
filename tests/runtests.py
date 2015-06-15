@@ -16,7 +16,7 @@ def start(argv=None):
         argv = [
             "nosetests", "--cover-branches", "--with-coverage",
             "--cover-erase", "--verbose",
-            "--cover-package=cms_restapi",
+            "--cover-package=djangocms_restapi",
         ]
 
     nose.run_exit(argv=argv, defaultTest=os.path.abspath(os.path.dirname(__file__)))

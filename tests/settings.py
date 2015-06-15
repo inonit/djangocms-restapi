@@ -17,7 +17,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
     'django_extensions',
-    'cms_restapi'
+    'djangocms_restapi'
 )
 
 MIDDLEWARE_CLASSES = (
