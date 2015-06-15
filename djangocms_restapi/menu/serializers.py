@@ -36,8 +36,9 @@ class NavigationNodeSerializer(serializers.Serializer):
     menu_level = serializers.IntegerField()
     parent_id = serializers.IntegerField()
     parent_namespace = serializers.CharField()
-    attributes = serializers.SerializerMethodField()
+    attrs = serializers.SerializerMethodField()
     children = serializers.ListField(child=RecursiveField())
 
-    def get_attributes(self, instance):
+    @staticmethod
+    def get_attrs(instance):
         return NodeAttributeSerializer(instance.attr, many=False).data
