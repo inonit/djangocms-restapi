@@ -6,5 +6,6 @@ from django.conf.urls import patterns, include, url
 
 urlpatterns = patterns(
     "",
-    url(r"^cms-restapi/", include("djangocms_restapi.urls"))
+    url(r"^cms-api/", include("djangocms_restapi.urls")),
+    url(r'^', include('cms.urls')),
 )
