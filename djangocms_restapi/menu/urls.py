@@ -10,7 +10,7 @@ from .views import ShowMenuViewSet, ShowMenuBelowIdViewSet, ShowSubMenuViewSet, 
 router = routers.DefaultRouter()
 router.register(r"show-menu", ShowMenuViewSet, base_name="show-menu")
 router.register(r"show-menu-below-id", ShowMenuBelowIdViewSet, base_name="show-menu-below-id")
-router.register(r"show-sub-menu", ShowSubMenuViewSet, base_name="show-sub-menu")
+router.register(r"show-submenu", ShowSubMenuViewSet, base_name="show-submenu")
 router.register(r"show-breadcrumb", ShowBreadcrumbViewSet, base_name="show-breadcrumb")
 
 
