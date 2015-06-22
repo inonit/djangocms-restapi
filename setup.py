@@ -30,7 +30,6 @@ setup(
         "nose",
         "mock",
         "coverage",
-        "unittest2",
     ],
     zip_safe=False,
     test_suite="tests.runtests.start",

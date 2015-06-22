@@ -15,7 +15,7 @@ def start(argv=None):
     if argv is None:
         argv = [
             "nosetests", "--cover-branches", "--with-coverage",
-            "--cover-erase", "--verbose",
+            "--cover-erase", "--verbose", "--nocapture", "--nologcapture",
             "--cover-package=djangocms_restapi",
         ]
 
