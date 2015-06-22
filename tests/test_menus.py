@@ -163,8 +163,50 @@ class ShowSubMenuViewSetTestCase(BaseMenuAPITestCase):
 
     def setUp(self):
         super(ShowSubMenuViewSetTestCase, self).setUp()
-        self.url = reverse("show-sub-menu-list")
+        self.url = reverse("show-submenu-list")
 
+    def test_show_submenu(self):
+        response = self.client.get(self.url, data="", format="json")
+        self.assertEqual(response.data[0]["descendant"], True)
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data[0]["children"]), 1)
+        self.assertEqual(len(response.data[1]["children"]), 1)
+        self.assertEqual(len(response.data[1]["children"][0]["children"]), 1)
+
+    def test_show_submenu_only_one_level(self):
+        response = self.client.get(self.url, data={"levels": 1}, format="json")
+        self.assertEqual(len(response.data), 2)
+        for node in response.data:
+            self.assertEqual(len(node["children"]), 0)
+
+    def test_show_submenu_current_page(self):
+        response = self.client.get(
+            self.url,
+            data={"levels": 100, "current_page": "/p9/"},
+            format="json"
+        )
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(len(response.data[0]["children"]), 1)
+        self.assertEqual(response.data[0]["url"], "/p9/p10/")
+        self.assertEqual(response.data[0]["children"][0]["url"], "/p9/p10/p11/")
+        self.assertEqual(
+            response.data[0]["id"],
+            response.data[0]["children"][0]["parent_id"]
+        )
+
+    def test_show_submenu_root_level_one(self):
+        response = self.client.get(
+            self.url,
+            data={"levels": 2, "root_level": 1, "current_page": "/p9/"},
+            format="json"
+        )
+        self.assertEqual(len(response.data), 2)
+        for node in response.data:
+            self.assertEqual(len(node["children"]), 1)
+
+        self.assertEqual(response.data[1]["url"], "/p9/")
+        self.assertEqual(response.data[1]["selected"], True)
+        self.assertEqual(response.data[1]["parent_url"], self.get_page(1).get_absolute_url())
 
 class ShowBreadcrumbViewSetTestCase(BaseMenuAPITestCase):
 
