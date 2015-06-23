@@ -11,7 +11,7 @@ from rest_framework.test import APITestCase
 from rest_framework.test import APIRequestFactory
 
 from cms.models import Page
-from cms.test_utils.fixtures.menus import ExtendedMenusFixture
+from cms.test_utils.fixtures.menus import ExtendedMenusFixture, SoftrootFixture
 
 
 PAGES_ROOT = unquote(reverse("pages-root"))
@@ -22,8 +22,11 @@ class BaseAPITestCase(APITestCase):
     def setUp(self):
         self.create_fixtures()
 
-    def get_page(self, num):
-        return Page.objects.public().get(title_set__title='P%s' % num)
+    def tearDown(self):
+        Page.objects.public().delete()
+
+    def get_page(self, slug):
+        return Page.objects.public().get(title_set__slug=slug)
 
     def get_level(self, num):
         return Page.objects.public().filter(depth=num)
@@ -70,7 +73,7 @@ class ShowMenuViewSetTestCase(ExtendedMenusFixture, BaseAPITestCase):
         self.assertEqual(response.data[0]["attrs"]["visible_for_anonymous"], True)
         self.assertEqual(response.data[0]["attrs"]["visible_for_authenticated"], True)
         self.assertEqual(response.data[1]["sibling"], True)
-        self.assertEqual(response.data[1]["url"], self.get_page(4).get_absolute_url())
+        self.assertEqual(response.data[1]["url"], self.get_page("p4").get_absolute_url())
 
     def test_show_menu_selected_path(self):
         response = self.client.get(
@@ -152,6 +155,57 @@ class ShowMenuViewSetTestCase(ExtendedMenusFixture, BaseAPITestCase):
         for node in response.data[1]["children"]:
             self.assertEqual(len(node["children"]), 0)
 
+
+class SoftRootShowMenuViewSetTestCase(SoftrootFixture, BaseAPITestCase):
+    """
+    Tree from fixture:
+    + top
+    |  + root (SOFTROOT)
+    |    + aaa
+    |      + 111
+    |        + ccc
+    |          + ddd
+    |      + 222
+    |    + bbb
+    |      + 333
+    |      + 444
+
+    """
+
+    def setUp(self):
+        super(SoftRootShowMenuViewSetTestCase, self).setUp()
+        self.url = reverse("show-menu-list")
+
+    def test_show_menu_no_softroot(self):
+        response = self.client.get(
+            self.url,
+            data={"start_level": 0, "end_level": 100, "extra_inactive": 0, "extra_active": 100,
+                  "current_page": self.get_page("aaa").get_absolute_url()},
+            format="json"
+        )
+
+        self.assertEqual(response.data[0]["title"], "top")
+        self.assertEqual(response.data[0]["children"][0]["attrs"]["soft_root"], False)
+        self.assertEqual(response.data[0]["children"][0]["children"][0]["selected"], True)
+
+    def test_show_menu_with_softroot(self):
+
+        root = self.get_page("root")
+        root.soft_root = True
+        root.save()
+
+        response = self.client.get(
+            self.url,
+            data={"start_level": 0, "end_level": 100, "extra_inactive": 0, "extra_active": 100,
+                  "current_page": self.get_page("aaa").get_absolute_url()},
+            format="json"
+        )
+
+        self.assertEqual(response.data[0]["title"], "root")
+        self.assertEqual(response.data[0]["attrs"]["soft_root"], True)
+        self.assertEqual(response.data[0]["children"][0]["selected"], True)
+
+
 # class ShowMenuBelowIdViewSetTestCase(BaseAPITestCase):
 #
 #     def setUp(self):
@@ -220,7 +274,7 @@ class ShowSubMenuViewSetTestCase(ExtendedMenusFixture, BaseAPITestCase):
 
         self.assertEqual(response.data[1]["url"], "/p9/")
         self.assertEqual(response.data[1]["selected"], True)
-        self.assertEqual(response.data[1]["parent_url"], self.get_page(1).get_absolute_url())
+        self.assertEqual(response.data[1]["parent_url"], self.get_page("p1").get_absolute_url())
 
     def test_show_submenu_nephews(self):
         response = self.client.get(
