@@ -206,12 +206,62 @@ class SoftRootShowMenuViewSetTestCase(SoftrootFixture, BaseAPITestCase):
         self.assertEqual(response.data[0]["children"][0]["selected"], True)
 
 
-# class ShowMenuBelowIdViewSetTestCase(BaseAPITestCase):
-#
-#     def setUp(self):
-#         super(ShowMenuBelowIdViewSetTestCase, self).setUp()
-#         self.url = reverse("show-menu-below-id-list")
+class ShowMenuBelowIdViewSetTestCase(ExtendedMenusFixture, BaseAPITestCase):
+    """
+    Tree from fixture:
+        + P1
+        | + P2
+        |   + P3
+        | + P9
+        |   + P10
+        |      + P11
+        + P4
+        | + P5
+        + P6 (not in menu)
+          + P7
+          + P8
+    """
 
+    def setUp(self):
+        super(ShowMenuBelowIdViewSetTestCase, self).setUp()
+        self.url = reverse("show-menu-below-id-list")
+
+    def test_show_menu_below_id_not_in_navigation(self):
+        p6 = self.get_page("p6")
+        p6.reverse_id = "p6"
+        p6.save()
+
+        response = self.client.get(
+            self.url,
+            data={"root_id": "p6", "start_level": 0, "end_level": 100, "extra_inactive": 100,
+                  "extra_active": 100, "current_page": self.get_page("p7").get_absolute_url()},
+            format="json"
+        )
+
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]["title"], "P7")
+        self.assertEqual(response.data[0]["parent_id"], self.get_page("p6").pk)
+
+    def test_show_menu_below_id_ignore_softroot(self):
+        p1 = self.get_page("p1")
+        p1.reverse_id = "p1"
+        p1.save()
+
+        p9 = self.get_page("p9")
+        p9.soft_root = True
+        p9.save()
+
+        response = self.client.get(
+            self.url,
+            data={"root_id": "p1", "start_level": 0, "end_level": 100, "extra_inactive": 100,
+                  "extra_active": 100, "current_page": self.get_page("p10").get_absolute_url()},
+            format="json"
+        )
+
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]["url"], self.get_page("p2").get_absolute_url())
+        self.assertEqual(response.data[1]["url"], self.get_page("p9").get_absolute_url())
+        self.assertEqual(response.data[1]["children"][0]["selected"], True)
 
 class ShowSubMenuViewSetTestCase(ExtendedMenusFixture, BaseAPITestCase):
     """
@@ -306,9 +356,9 @@ class ShowSubMenuViewSetTestCase(ExtendedMenusFixture, BaseAPITestCase):
         )
         self.assertEqual(len(response.data), 2)
 
-# class ShowBreadcrumbViewSetTestCase(BaseAPITestCase):
-#
-#     def setUp(self):
-#         super(ShowBreadcrumbViewSetTestCase, self).setUp()
-#         self.url = reverse("show-breadcrumb-list")
+class ShowBreadcrumbViewSetTestCase(BaseAPITestCase):
+
+    def setUp(self):
+        super(ShowBreadcrumbViewSetTestCase, self).setUp()
+        self.url = reverse("show-breadcrumb-list")
 

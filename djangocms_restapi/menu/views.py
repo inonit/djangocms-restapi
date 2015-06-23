@@ -51,7 +51,6 @@ class ShowMenuViewSet(CurrentPageAPIContextMixin, GenericViewSet):
       ``extra_active``    Specifies how many levels of descendants of the currently active
                           node that should be displayed.
       ``namespace``       The namespace of the menu. If blank, all namespaces will be used.
-      ``root_id``         Specify the ID of the root node.
     """
 
     serializer_class = NavigationNodeSerializer
@@ -60,15 +59,14 @@ class ShowMenuViewSet(CurrentPageAPIContextMixin, GenericViewSet):
         """
         Render and return the context
         """
-        args = ("{start_level} {end_level} {extra_inactive} {extra_active} "
-                "{template} {namespace} {root_id}").format(
+        args = ("{start_level} {end_level} {extra_inactive} "
+                "{extra_active} {template} {namespace}").format(
             start_level=context["request"].GET.get("start_level", 0),
             end_level=context["request"].GET.get("end_level", 100),
             extra_inactive=context["request"].GET.get("extra_inactive", 0),
             extra_active=context["request"].GET.get("extra_active", 1000),
             template='"menu/menu.html"',
             namespace='"%s"' % context["request"].GET.get("namespace", ""),
-            root_id='"%s"' % context["request"].GET.get("root_id", "")
         )
         template = Template(
             "".join(("{% load menu_tags %}{% show_menu ", args, " %}"))
@@ -101,6 +99,7 @@ class ShowMenuBelowIdViewSet(ShowMenuViewSet):
     The following query parameters will be used to construct the argument
     list which will be passed to the {% show_menu_below_id %} tag.
 
+      ``root_id``         Specify the ID of the root node.
       ``start_level``     Specify from which level the navigation should be rendered.
       ``end_level``       Specify from which level the navigation should stop rendering.
       ``extra_inactive``  Specifies how many levels of navigation should be displayed.
@@ -109,9 +108,26 @@ class ShowMenuBelowIdViewSet(ShowMenuViewSet):
       ``extra_active``    Specifies how many levels of descendants of the currently active
                           node that should be displayed.
       ``namespace``       The namespace of the menu. If blank, all namespaces will be used.
-      ``root_id``         Specify the ID of the root node.
     """
-    pass
+    def render_context(self, context):
+        """
+        Render and return the context
+        """
+        args = ("{root_id} {start_level} {end_level} {extra_inactive} "
+                "{extra_active} {template} {namespace}").format(
+            root_id='"%s"' % context["request"].GET.get("root_id", ""),
+            start_level=context["request"].GET.get("start_level", 0),
+            end_level=context["request"].GET.get("end_level", 100),
+            extra_inactive=context["request"].GET.get("extra_inactive", 0),
+            extra_active=context["request"].GET.get("extra_active", 1000),
+            template='"menu/menu.html"',
+            namespace='"%s"' % context["request"].GET.get("namespace", "")
+        )
+        template = Template(
+            "".join(("{% load menu_tags %}{% show_menu_below_id ", args, " %}"))
+        )
+        template.render(context)
+        return context
 
 
 class ShowSubMenuViewSet(ShowMenuViewSet):
