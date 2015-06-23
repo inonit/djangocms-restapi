@@ -9,7 +9,7 @@ except ImportError:
 
 setup(
     name="djangocms-restapi",
-    version="0.0.1",
+    version="1.0.0",
     description="REST api interface for Django CMS",
     long_description="REST api interface based on Django REST Framework",
     author="Rolf Håvard Blindheim",
