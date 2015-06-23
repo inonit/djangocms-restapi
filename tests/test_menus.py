@@ -17,21 +17,7 @@ from cms.test_utils.fixtures.menus import ExtendedMenusFixture
 PAGES_ROOT = unquote(reverse("pages-root"))
 factory = APIRequestFactory(enforce_csrf_checks=False)
 
-class BaseMenuAPITestCase(ExtendedMenusFixture, APITestCase):
-    """
-    Tree from fixture:
-        + P1
-        | + P2
-        |   + P3
-        | + P9
-        |   + P10
-        |      + P11
-        + P4
-        | + P5
-        + P6 (not in menu)
-          + P7
-          + P8
-    """
+class BaseAPITestCase(APITestCase):
 
     def setUp(self):
         self.create_fixtures()
@@ -46,7 +32,21 @@ class BaseMenuAPITestCase(ExtendedMenusFixture, APITestCase):
         return Page.objects.public()
 
 
-class ShowMenuViewSetTestCase(BaseMenuAPITestCase):
+class ShowMenuViewSetTestCase(ExtendedMenusFixture, BaseAPITestCase):
+    """
+    Tree from fixture:
+        + P1
+        | + P2
+        |   + P3
+        | + P9
+        |   + P10
+        |      + P11
+        + P4
+        | + P5
+        + P6 (not in menu)
+          + P7
+          + P8
+    """
 
     def setUp(self):
         super(ShowMenuViewSetTestCase, self).setUp()
@@ -152,14 +152,28 @@ class ShowMenuViewSetTestCase(BaseMenuAPITestCase):
         for node in response.data[1]["children"]:
             self.assertEqual(len(node["children"]), 0)
 
-class ShowMenuBelowIdViewSetTestCase(BaseMenuAPITestCase):
+# class ShowMenuBelowIdViewSetTestCase(BaseAPITestCase):
+#
+#     def setUp(self):
+#         super(ShowMenuBelowIdViewSetTestCase, self).setUp()
+#         self.url = reverse("show-menu-below-id-list")
 
-    def setUp(self):
-        super(ShowMenuBelowIdViewSetTestCase, self).setUp()
-        self.url = reverse("show-menu-below-id-list")
 
-
-class ShowSubMenuViewSetTestCase(BaseMenuAPITestCase):
+class ShowSubMenuViewSetTestCase(ExtendedMenusFixture, BaseAPITestCase):
+    """
+    Tree from fixture:
+        + P1
+        | + P2
+        |   + P3
+        | + P9
+        |   + P10
+        |      + P11
+        + P4
+        | + P5
+        + P6 (not in menu)
+          + P7
+          + P8
+    """
 
     def setUp(self):
         super(ShowSubMenuViewSetTestCase, self).setUp()
@@ -208,9 +222,39 @@ class ShowSubMenuViewSetTestCase(BaseMenuAPITestCase):
         self.assertEqual(response.data[1]["selected"], True)
         self.assertEqual(response.data[1]["parent_url"], self.get_page(1).get_absolute_url())
 
-class ShowBreadcrumbViewSetTestCase(BaseMenuAPITestCase):
+    def test_show_submenu_nephews(self):
+        response = self.client.get(
+            self.url,
+            data={"levels": 100, "root_level": 1, "nephews": 1, "current_page": "/p2/"},
+            format="json"
+        )
+        self.assertEqual(response.data[0]["url"], "/p2/")
+        self.assertEqual(response.data[0]["selected"], True)
 
-    def setUp(self):
-        super(ShowBreadcrumbViewSetTestCase, self).setUp()
-        self.url = reverse("show-breadcrumb-list")
+        # Should include P10 but not P11
+        self.assertEqual(len(response.data[1]["children"]), 1)
+        self.assertEqual(len(response.data[1]["children"][0]["children"]), 0)
+
+        response = self.client.get(
+            self.url,
+            data={"levels": 100, "root_level": 1, "current_page": "/p2/"},
+            format="json"
+        )
+        # Should include both P10 and P11
+        self.assertEqual(len(response.data[1]["children"]), 1)
+        self.assertEqual(len(response.data[1]["children"][0]["children"]), 1)
+
+    def test_show_submenu_nephew_no_limit(self):
+        response = self.client.get(
+            self.url,
+            data={"levels": 100, "nephews": 100, "current_page": "/"},
+            format="json"
+        )
+        self.assertEqual(len(response.data), 2)
+
+# class ShowBreadcrumbViewSetTestCase(BaseAPITestCase):
+#
+#     def setUp(self):
+#         super(ShowBreadcrumbViewSetTestCase, self).setUp()
+#         self.url = reverse("show-breadcrumb-list")
 
