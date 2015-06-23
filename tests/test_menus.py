@@ -356,9 +356,44 @@ class ShowSubMenuViewSetTestCase(ExtendedMenusFixture, BaseAPITestCase):
         )
         self.assertEqual(len(response.data), 2)
 
-class ShowBreadcrumbViewSetTestCase(BaseAPITestCase):
+class ShowBreadcrumbViewSetTestCase(ExtendedMenusFixture, BaseAPITestCase):
+    """
+    Tree from fixture:
+        + P1
+        | + P2
+        |   + P3
+        | + P9
+        |   + P10
+        |      + P11
+        + P4
+        | + P5
+        + P6 (not in menu)
+          + P7
+          + P8
+    """
 
     def setUp(self):
         super(ShowBreadcrumbViewSetTestCase, self).setUp()
         self.url = reverse("show-breadcrumb-list")
 
+    def test_show_breadcrumb(self):
+        response = self.client.get(
+            self.url,
+            data={"current_page": self.get_page("p3").get_absolute_url()},
+            format="json"
+        )
+        self.assertEqual(len(response.data), 3)
+        self.assertEqual(response.data[0]["parent_url"], None)
+        self.assertEqual(response.data[1]["parent_url"], self.get_page("p1").get_absolute_url())
+        self.assertEqual(response.data[2]["parent_url"], self.get_page("p2").get_absolute_url())
+
+    def test_show_breadcrumb_start_level(self):
+        response = self.client.get(
+            self.url,
+            data={"current_page": self.get_page("p3").get_absolute_url(),
+                  "start_level": 1},
+            format="json"
+        )
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(response.data[0]["parent_url"], self.get_page("p1").get_absolute_url())
+        self.assertEqual(response.data[1]["parent_url"], self.get_page("p2").get_absolute_url())

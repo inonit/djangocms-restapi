@@ -37,11 +37,11 @@ class CurrentPageAPIContextMixin(CurrentPageMiddleware):
 
 class ShowMenuViewSet(CurrentPageAPIContextMixin, GenericViewSet):
     """
-    API Endpoint which calls the {% show_menu %} tag and returns
+    API Endpoint which calls the ``{% show_menu %}`` tag and returns
     a serialized list of ``NavigationNodes``.
 
     The following query parameters will be used to construct the argument
-    list which will be passed to the {% show_menu %} tag.
+    list which will be passed to the template tag.
 
       ``start_level``     Specify from which level the navigation should be rendered.
       ``end_level``       Specify from which level the navigation should stop rendering.
@@ -51,6 +51,8 @@ class ShowMenuViewSet(CurrentPageAPIContextMixin, GenericViewSet):
       ``extra_active``    Specifies how many levels of descendants of the currently active
                           node that should be displayed.
       ``namespace``       The namespace of the menu. If blank, all namespaces will be used.
+      ``current_page``    URL for the page that should be considered the `current_page`
+                          when rendering the context.
     """
 
     serializer_class = NavigationNodeSerializer
@@ -61,12 +63,12 @@ class ShowMenuViewSet(CurrentPageAPIContextMixin, GenericViewSet):
         """
         args = ("{start_level} {end_level} {extra_inactive} "
                 "{extra_active} {template} {namespace}").format(
-            start_level=context["request"].GET.get("start_level", 0),
-            end_level=context["request"].GET.get("end_level", 100),
-            extra_inactive=context["request"].GET.get("extra_inactive", 0),
-            extra_active=context["request"].GET.get("extra_active", 1000),
+            start_level=self.request.GET.get("start_level", 0),
+            end_level=self.request.GET.get("end_level", 100),
+            extra_inactive=self.request.GET.get("extra_inactive", 0),
+            extra_active=self.request.GET.get("extra_active", 1000),
             template='"menu/menu.html"',
-            namespace='"%s"' % context["request"].GET.get("namespace", ""),
+            namespace='"%s"' % self.request.GET.get("namespace", ""),
         )
         template = Template(
             "".join(("{% load menu_tags %}{% show_menu ", args, " %}"))
@@ -93,11 +95,11 @@ class ShowMenuViewSet(CurrentPageAPIContextMixin, GenericViewSet):
 
 class ShowMenuBelowIdViewSet(ShowMenuViewSet):
     """
-    API Endpoint which calls the {% show_menu_below_id %} tag and returns
+    API Endpoint which calls the ``{% show_menu_below_id %}`` tag and returns
     a serialized list of ``NavigationNodes``.
 
     The following query parameters will be used to construct the argument
-    list which will be passed to the {% show_menu_below_id %} tag.
+    list which will be passed to the template tag.
 
       ``root_id``         Specify the ID of the root node.
       ``start_level``     Specify from which level the navigation should be rendered.
@@ -108,6 +110,8 @@ class ShowMenuBelowIdViewSet(ShowMenuViewSet):
       ``extra_active``    Specifies how many levels of descendants of the currently active
                           node that should be displayed.
       ``namespace``       The namespace of the menu. If blank, all namespaces will be used.
+      ``current_page``    URL for the page that should be considered the `current_page`
+                          when rendering the context.
     """
     def render_context(self, context):
         """
@@ -115,13 +119,13 @@ class ShowMenuBelowIdViewSet(ShowMenuViewSet):
         """
         args = ("{root_id} {start_level} {end_level} {extra_inactive} "
                 "{extra_active} {template} {namespace}").format(
-            root_id='"%s"' % context["request"].GET.get("root_id", ""),
-            start_level=context["request"].GET.get("start_level", 0),
-            end_level=context["request"].GET.get("end_level", 100),
-            extra_inactive=context["request"].GET.get("extra_inactive", 0),
-            extra_active=context["request"].GET.get("extra_active", 1000),
+            root_id='"%s"' % self.request.GET.get("root_id", ""),
+            start_level=self.request.GET.get("start_level", 0),
+            end_level=self.request.GET.get("end_level", 100),
+            extra_inactive=self.request.GET.get("extra_inactive", 0),
+            extra_active=self.request.GET.get("extra_active", 1000),
             template='"menu/menu.html"',
-            namespace='"%s"' % context["request"].GET.get("namespace", "")
+            namespace='"%s"' % self.request.GET.get("namespace", "")
         )
         template = Template(
             "".join(("{% load menu_tags %}{% show_menu_below_id ", args, " %}"))
@@ -132,19 +136,18 @@ class ShowMenuBelowIdViewSet(ShowMenuViewSet):
 
 class ShowSubMenuViewSet(ShowMenuViewSet):
     """
-    API Endpoint which calls the {% show_sub_menu %} tag and returns
+    API Endpoint which calls the ``{% show_sub_menu %}`` tag and returns
     a serialized list of ``NavigationNodes``.
 
     The following query parameters will be used to construct the argument
-    list which will be passed to the {% show_sub_menu %} tag.
+    list which will be passed to the template tag.
 
       ``levels``        Specify how many levels deep the sub menu should be rendered.
       ``root_level``    Specifies at what level (if any) the sub menu should have its root.
       ``nephews``       Specifies how many levels of nephews (children of siblings) that
                         should be displayed.
-      ``current_page``  Set the ``request.current_page`` for the request. Must be a valid
-                        url ie. /home/. This is useful for rendering menu items relative
-                        to a specified path.
+      ``current_page``  URL for the page that should be considered the `current_page`
+                        when rendering the context.
     """
     def render_context(self, context):
         """
@@ -164,4 +167,41 @@ class ShowSubMenuViewSet(ShowMenuViewSet):
 
 
 class ShowBreadcrumbViewSet(ShowMenuViewSet):
-    pass
+    """
+    API Endpoint which calls the ``{% show_breadcrumb %}`` tag and returns
+    a serialized list of ``NavigationNodes``.
+
+    The following query parameters will be used to construct the argument list
+    which will be passed to the template tag.
+
+      ``start_level``   After which level should the breadcrumb start?
+                        ``0`` equals home.
+      ``only_visible``  Numeric boolean value(0 = False, 1 = True). To include all
+                        pages, use ``only_visible=0``.
+      ``current_page``  URL for the page that should be considered the `current_page`
+                        when rendering the context.
+    """
+
+    def get_queryset(self):
+        context = self.render_context(self.get_context(self.request))
+
+        # We don't want nested children in the breadcrumb context.
+        # This should be a flat structure.
+        for node in context["ancestors"]:
+            del node.children
+
+        return context["ancestors"]
+
+    def render_context(self, context):
+        """
+        Constructs the template tag arguments and render it.
+        Returns the context.
+        """
+        args = "{start_level}".format(
+            start_level=self.request.GET.get("start_level", 0)
+        )
+        template = Template(
+            "".join(("{% load menu_tags %}{% show_breadcrumb ", args, " %}"))
+        )
+        template.render(context)
+        return context

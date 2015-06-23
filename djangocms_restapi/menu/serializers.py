@@ -32,14 +32,13 @@ class NavigationNodeSerializer(serializers.Serializer):
     ancestor = serializers.BooleanField()
     descendant = serializers.BooleanField()
     sibling = serializers.BooleanField()
-    is_leaf_node = serializers.BooleanField()
-    level = serializers.IntegerField()
+    is_leaf_node = serializers.BooleanField(required=False)
     menu_level = serializers.IntegerField(required=False)
     parent_id = serializers.IntegerField()
     parent_url = serializers.SerializerMethodField()
     parent_namespace = serializers.CharField()
     attrs = serializers.SerializerMethodField()
-    children = serializers.ListField(child=RecursiveField())
+    children = serializers.ListField(child=RecursiveField(), required=False)
 
     @staticmethod
     def get_attrs(instance):
