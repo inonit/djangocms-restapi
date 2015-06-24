@@ -2,6 +2,7 @@
 
 from __future__ import absolute_import, unicode_literals
 
+import re
 from django.template import Template
 from django.template.context import Context
 
@@ -28,7 +29,8 @@ class CurrentPageAPIContextMixin(CurrentPageMiddleware):
         request = clone_request(request, request.method)
 
         if "current_page" in request.GET:
-            request.path = request.path_info = request.GET["current_page"]
+            # Runs through regex in order to clean up potential double quoted strings.
+            request.path = request.path_info = re.sub(r'^"|"$', '', request.GET["current_page"])
 
         self.process_request(request)
         self.context["request"] = request
