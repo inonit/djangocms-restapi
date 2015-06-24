@@ -13,7 +13,8 @@ class CurrentPageCookieMiddleWare(object):
 
     def process_response(self, request, response):
         current_page = getattr(request, "current_page", get_page(request))
-        current_page = current_page.get_absolute_url()
+        if current_page:
+            current_page = current_page.get_absolute_url()
 
         if hasattr(request, "session"):
             session_page = request.session.get("current_page", None)
