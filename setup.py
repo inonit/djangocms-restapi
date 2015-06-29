@@ -22,8 +22,9 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        "Django>=1.5.0",
-        "djangorestframework>=2.4.4",
+        "Django>=1.7.0",
+        "djangorestframework>=3.1.0",
+        "djangorestframework-recursive>=0.1.1",
         "django-cms>=3.1.0"
     ],
     tests_require=[

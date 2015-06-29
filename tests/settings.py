@@ -33,7 +33,17 @@ MIDDLEWARE_CLASSES = (
     'cms.middleware.toolbar.ToolbarMiddleware',
     'cms.middleware.language.LanguageCookieMiddleware'
 )
-
+#
+# Django 1.7 Templates
+#
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+    'django.template.loaders.eggs.Loader'
+)
+TEMPLATE_DIRS = (
+    os.path.join(BASE_DIR, 'templates'),
+)
 TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
     'django.contrib.messages.context_processors.messages',
@@ -47,12 +57,25 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'cms.context_processors.cms_settings'
 )
 
+#
+# Django 1.8 Templates
+#
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'APP_DIRS': True,
+        'DIRS': TEMPLATE_DIRS,
+        'OPTIONS': {
+            'context_processors': TEMPLATE_CONTEXT_PROCESSORS
+        }
+    }
+]
+
+
 ROOT_URLCONF = 'tests.urls'
 WSGI_APPLICATION = 'tests.wsgi.application'
 
-TEMPLATE_DIRS = (
-    os.path.join(BASE_DIR, 'templates'),
-)
+
 CMS_TEMPLATES = (
     ("nav_playground.html", 'Navigation Playground'),
 )
