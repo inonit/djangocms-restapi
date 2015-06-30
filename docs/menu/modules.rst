@@ -8,7 +8,6 @@ ShowMenuViewSet
 .. module:: ShowMenuViewSet
 
 .. autoclass:: djangocms_restapi.menu.views.ShowMenuViewSet
-    :members:
 
 
 ShowMenuBelowIdViewSet
@@ -17,7 +16,6 @@ ShowMenuBelowIdViewSet
 .. module:: ShowMenuBelowIdViewSet
 
 .. autoclass:: djangocms_restapi.menu.views.ShowMenuBelowIdViewSet
-    :members:
 
 
 ShowSubMenuViewSet
@@ -26,7 +24,6 @@ ShowSubMenuViewSet
 .. module:: ShowSubMenuViewSet
 
 .. autoclass:: djangocms_restapi.menu.views.ShowSubMenuViewSet
-    :members:
 
 
 ShowBreadcrumbViewSet
@@ -35,4 +32,3 @@ ShowBreadcrumbViewSet
 .. module:: ShowBreadcrumbViewSet
 
 .. autoclass:: djangocms_restapi.menu.views.ShowBreadcrumbViewSet
-    :members:
