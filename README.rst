@@ -10,7 +10,7 @@ Build status
     :alt: Build status
 
 .. image:: https://readthedocs.org/projects/drf-haystack/badge/?version=latest
-    :target: http://drf-haystack.readthedocs.org/en/latest/
+    :target: http://djangocms-restapi.readthedocs.org/en/latest/
     :alt: Documentation Status
     
 
